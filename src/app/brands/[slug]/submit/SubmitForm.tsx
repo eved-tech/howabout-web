@@ -131,7 +131,7 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
         disabled={pending}
         className="w-full bg-neutral-900 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50"
       >
-        {pending ? "Checking…" : "Submit idea"}
+        {pending ? "Checking…" : "Go on, say it"}
       </button>
     </div>
   );
