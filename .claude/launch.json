@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "howabout-dev",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-lc", "PATH=/Users/evedmochowska/.local/node22/bin:$PATH npm run dev"],
+      "port": 3000
+    }
+  ]
+}
