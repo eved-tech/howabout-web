@@ -20,6 +20,75 @@ async function getCurrentUser() {
   });
 }
 
+export async function searchBrands(query: string) {
+  const q = query.trim();
+  if (!q) return [];
+
+  const brands = await prisma.brand.findMany({
+    where: { name: { contains: q, mode: "insensitive" } },
+    include: { _count: { select: { ideas: true } } },
+    orderBy: { name: "asc" },
+    take: 5,
+  });
+
+  return brands.map((b) => ({
+    slug: b.slug,
+    name: b.name,
+    claimed: b.claimed,
+    ideaCount: b._count.ideas,
+  }));
+}
+
+export async function getBrandSummary(slug: string) {
+  const brand = await prisma.brand.findUnique({ where: { slug } });
+  if (!brand) return null;
+
+  const ideas = await prisma.idea.findMany({
+    where: { brandId: brand.id },
+    include: { _count: { select: { votes: true } } },
+  });
+
+  const ideaCount = ideas.length;
+  const voteCount = ideas.reduce((sum, idea) => sum + idea._count.votes, 0);
+  const respondedCount = ideas.filter((idea) => idea.response !== null).length;
+  const responseRate = ideaCount === 0 ? null : Math.round((respondedCount / ideaCount) * 100);
+
+  return {
+    slug: brand.slug,
+    name: brand.name,
+    description: brand.description,
+    claimed: brand.claimed,
+    ideaCount,
+    voteCount,
+    responseRate,
+  };
+}
+
+async function findSimilarIdea(brandId: string, text: string) {
+  const existing = await prisma.idea.findMany({
+    where: { brandId },
+    include: { _count: { select: { votes: true } } },
+  });
+
+  let best: { id: string; text: string; votes: number; score: number } | null = null;
+  for (const idea of existing) {
+    const score = similarity(text, idea.text);
+    if (score >= DUPLICATE_THRESHOLD && (!best || score > best.score)) {
+      best = { id: idea.id, text: idea.text, votes: idea._count.votes, score };
+    }
+  }
+  return best;
+}
+
+export async function checkSimilarIdea(brandSlug: string, text: string) {
+  if (!text.trim()) return null;
+
+  const brand = await prisma.brand.findUnique({ where: { slug: brandSlug } });
+  if (!brand) return null;
+
+  return findSimilarIdea(brand.id, text);
+}
+
 export async function voteIdea(ideaId: string, brandSlug: string) {
   const user = await getCurrentUser();
   if (!user) {
@@ -58,19 +127,7 @@ export async function createIdea(input: {
   }
 
   if (!input.force) {
-    const existing = await prisma.idea.findMany({
-      where: { brandId: brand.id },
-      include: { _count: { select: { votes: true } } },
-    });
-
-    let best: { id: string; text: string; votes: number; score: number } | null = null;
-    for (const idea of existing) {
-      const score = similarity(text, idea.text);
-      if (score >= DUPLICATE_THRESHOLD && (!best || score > best.score)) {
-        best = { id: idea.id, text: idea.text, votes: idea._count.votes, score };
-      }
-    }
-
+    const best = await findSimilarIdea(brand.id, text);
     if (best) {
       return { status: "duplicate", match: best };
     }

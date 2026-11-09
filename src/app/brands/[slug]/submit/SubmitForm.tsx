@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { createIdea, voteIdea } from "@/app/actions";
+import { createIdea, voteIdea, checkSimilarIdea } from "@/app/actions";
 
 const CATEGORIES = ["Product", "Service", "Store experience"];
 
@@ -11,9 +11,37 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
   const [category, setCategory] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [duplicate, setDuplicate] = useState<{ id: string; text: string; votes: number } | null>(null);
+  const [checkedText, setCheckedText] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [pending, startTransition] = useTransition();
+  const checkId = useRef(0);
+
+  const tooShortToCheck = text.trim().length < 8;
+
+  // Live dedupe-as-you-type: debounced so we're not hitting the server on
+  // every keystroke, and guarded against out-of-order responses. "Checking"
+  // is derived (checkedText lags text) rather than its own state, since
+  // setState belongs in the timeout's callback, not synchronously in the
+  // effect body.
+  useEffect(() => {
+    checkId.current++;
+    if (tooShortToCheck) return;
+
+    const id = checkId.current;
+    const timer = setTimeout(async () => {
+      const match = await checkSimilarIdea(brandSlug, text);
+      if (checkId.current === id) {
+        setDuplicate(match);
+        setCheckedText(text);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [text, brandSlug, tooShortToCheck]);
+
+  const showDuplicate = !tooShortToCheck && duplicate;
+  const showChecking = !tooShortToCheck && !duplicate && checkedText !== text;
 
   function submit(force: boolean) {
     setError(null);
@@ -81,8 +109,11 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
         className="w-full min-h-[90px] border border-neutral-300 rounded-md px-3 py-2 text-sm"
       />
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
+      {showChecking && (
+        <p className="text-xs text-neutral-400 mt-1">Checking for similar ideas…</p>
+      )}
 
-      {duplicate && (
+      {showDuplicate && duplicate && (
         <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-xs font-medium text-blue-800 mb-1.5">
             Similar idea already posted

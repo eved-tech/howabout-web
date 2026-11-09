@@ -31,11 +31,12 @@ model User {
 }
 
 model Brand {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  name      String
-  claimed   Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  claimed     Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
   ideas Idea[]
 }
