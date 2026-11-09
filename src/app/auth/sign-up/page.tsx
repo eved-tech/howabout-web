@@ -4,6 +4,7 @@ import { Suspense, useActionState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signUpWithEmail } from "./actions";
+import { VerifyCodeForm } from "../VerifyCodeForm";
 
 export default function SignUpPage() {
   return (
@@ -16,6 +17,15 @@ export default function SignUpPage() {
 function SignUpForm() {
   const [state, formAction, isPending] = useActionState(signUpWithEmail, null);
   const redirectTo = useSearchParams().get("redirectTo") ?? "/";
+
+  if (state && "status" in state && state.status === "verify") {
+    return (
+      <main className="mx-auto max-w-sm w-full px-4 py-16">
+        <h1 className="font-medium text-lg mb-6">Verify your email</h1>
+        <VerifyCodeForm email={state.email} redirectTo={state.redirectTo} />
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-sm w-full px-4 py-16">
@@ -59,7 +69,7 @@ function SignUpForm() {
             className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
           />
         </div>
-        {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+        {state && "error" in state && <p className="text-sm text-red-600">{state.error}</p>}
         <button
           type="submit"
           disabled={isPending}

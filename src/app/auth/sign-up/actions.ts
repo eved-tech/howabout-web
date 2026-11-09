@@ -1,15 +1,20 @@
 "use server";
 
 import { auth } from "@/lib/auth/server";
-import { redirect } from "next/navigation";
+
+type SignUpState =
+  | { error: string }
+  | { status: "verify"; email: string; redirectTo: string }
+  | null;
 
 export async function signUpWithEmail(
-  _prevState: { error: string } | null,
+  _prevState: SignUpState,
   formData: FormData
-) {
+): Promise<SignUpState> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
+  const redirectTo = (formData.get("redirectTo") as string) || "/";
 
   if (!email || !password || !name) {
     return { error: "Fill in your name, email, and password." };
@@ -21,5 +26,8 @@ export async function signUpWithEmail(
     return { error: error.message || "Couldn't create that account." };
   }
 
-  redirect((formData.get("redirectTo") as string) || "/");
+  // Email + password sign-up requires verification before a session exists —
+  // the account is created, but the person still needs to enter the code
+  // Neon just emailed them.
+  return { status: "verify", email, redirectTo };
 }
