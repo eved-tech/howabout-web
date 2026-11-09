@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Source {
+  WEB
+  WHATSAPP
+}
+
+enum IdeaStatus {
+  NEW
+  PLANNED
+  RESPONDED
+  DECLINED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String?  @unique
+  phone     String?  @unique
+  createdAt DateTime @default(now())
+
+  ideas Idea[]
+  votes Vote[]
+}
+
+model Brand {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  claimed   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ideas Idea[]
+}
+
+model Idea {
+  id          String     @id @default(cuid())
+  text        String
+  category    String?
+  status      IdeaStatus @default(NEW)
+  source      Source     @default(WEB)
+  response    String?
+  respondedAt DateTime?
+  createdAt   DateTime   @default(now())
+
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id])
+
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id])
+
+  votes Vote[]
+
+  // Future work: a `vector(1536)` embedding column (requires the pgvector
+  // extension) powers duplicate-idea detection. Add it as a manual migration
+  // once an embedding provider is wired up — Prisma can model it as
+  // `Unsupported("vector(1536)")` but can't query it directly, so similarity
+  // search goes through raw SQL either way.
+
+  @@index([brandId, status])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  ideaId String
+  idea   Idea   @relation(fields: [ideaId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([ideaId, userId])
+}
