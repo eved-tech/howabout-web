@@ -8,6 +8,7 @@ idea submission with duplicate detection, and a brand dashboard.
 
 - Next.js 16 (App Router) + TypeScript + Tailwind
 - Postgres via Prisma 6 (`prisma/schema.prisma`)
+- Auth via Neon Managed Auth (`src/lib/auth/`, `/auth/*` pages)
 - Server Actions for mutations (`src/app/actions.ts`) — no separate API layer yet
 
 ## Setup
@@ -35,9 +36,10 @@ Built:
 - Brand idea feed with upvoting (`/brands/[slug]`)
 - Idea submission with duplicate detection (`/brands/[slug]/submit`)
 - Brand dashboard: metrics, respond + status (`/dashboard/[slug]`)
+- **Auth.** Real accounts via Neon Managed Auth (email + password) — sign-up/sign-in/sign-out live at `/auth/*`, and votes/ideas are tied to the signed-in user (`src/app/actions.ts`, `src/lib/auth/`).
 
 Deliberately stubbed for later (see inline comments where relevant):
-- **Auth.** Every action currently runs as one demo user (`src/app/actions.ts`). Real accounts (web) and phone-number identity (WhatsApp) are the next piece.
+- **Phone-number identity (WhatsApp).** The web accounts above don't cover WhatsApp senders yet — that's still the next piece.
 - **Duplicate detection** (`src/lib/dedupe.ts`) uses a plain word-overlap heuristic, not embeddings. Swapping in pgvector + a real embedding model is a drop-in replacement for `similarity()` once that's wired up — the `Idea` model's schema comment notes where the vector column goes.
 - **WhatsApp input.** Nothing here yet — the plan is to normalize WhatsApp messages into the same `createIdea` action this web form already calls, so the dedupe/moderation logic is never duplicated.
 - **Brand dashboard analytics/settings tabs** — the freemium upsell surface. Not built; metrics shown are just the free-tier basics.
