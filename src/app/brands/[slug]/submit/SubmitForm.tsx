@@ -12,6 +12,7 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
   const [error, setError] = useState<string | null>(null);
   const [duplicate, setDuplicate] = useState<{ id: string; text: string; votes: number } | null>(null);
   const [done, setDone] = useState(false);
+  const [needsAuth, setNeedsAuth] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function submit(force: boolean) {
@@ -22,6 +23,8 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
         setError(result.message);
       } else if (result.status === "duplicate") {
         setDuplicate(result.match);
+      } else if (result.status === "unauthenticated") {
+        setNeedsAuth(true);
       } else {
         setDuplicate(null);
         setDone(true);
@@ -54,6 +57,17 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
 
   return (
     <div>
+      {needsAuth && (
+        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-sm mb-2">Sign in to submit an idea — your draft is still here.</p>
+          <Link
+            href={`/auth/sign-in?redirectTo=${encodeURIComponent(`/brands/${brandSlug}/submit`)}`}
+            className="text-sm underline"
+          >
+            Sign in or create an account
+          </Link>
+        </div>
+      )}
       <label className="block text-xs text-neutral-500 mb-1">
         What should {brandName} do differently?
       </label>

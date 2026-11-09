@@ -1,21 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth/server";
 import { similarity, DUPLICATE_THRESHOLD } from "@/lib/dedupe";
 
-// No auth system yet (see README) — every action runs as one demo user
-// until real accounts (web) / phone-number identity (WhatsApp) land.
-async function getOrCreateDemoUser() {
+// Neon Managed Auth owns the account itself; this mirrors the signed-in
+// person into our own `User` row (keyed by email) the first time we see
+// them, so ideas/votes can carry a normal foreign key.
+async function getCurrentUser() {
+  const { data: session } = await auth.getSession();
+  if (!session?.user?.email) return null;
+
   return prisma.user.upsert({
-    where: { email: "demo@howabout.co.za" },
-    update: {},
-    create: { email: "demo@howabout.co.za", name: "Demo user" },
+    where: { email: session.user.email },
+    update: { name: session.user.name ?? undefined },
+    create: { email: session.user.email, name: session.user.name },
   });
 }
 
 export async function voteIdea(ideaId: string, brandSlug: string) {
-  const user = await getOrCreateDemoUser();
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect(`/auth/sign-in?redirectTo=${encodeURIComponent(`/brands/${brandSlug}`)}`);
+  }
 
   await prisma.vote.upsert({
     where: { ideaId_userId: { ideaId, userId: user.id } },
@@ -29,6 +38,7 @@ export async function voteIdea(ideaId: string, brandSlug: string) {
 type CreateIdeaResult =
   | { status: "duplicate"; match: { id: string; text: string; votes: number } }
   | { status: "created"; ideaId: string }
+  | { status: "unauthenticated" }
   | { status: "error"; message: string };
 
 export async function createIdea(input: {
@@ -66,7 +76,11 @@ export async function createIdea(input: {
     }
   }
 
-  const user = await getOrCreateDemoUser();
+  const user = await getCurrentUser();
+  if (!user) {
+    return { status: "unauthenticated" };
+  }
+
   const idea = await prisma.idea.create({
     data: {
       text,
@@ -81,6 +95,8 @@ export async function createIdea(input: {
   return { status: "created", ideaId: idea.id };
 }
 
+// Anyone can still call this — brand-side identity (claiming a brand page)
+// isn't built yet, so the dashboard has no access control of its own.
 export async function respondToIdea(input: {
   ideaId: string;
   brandSlug: string;

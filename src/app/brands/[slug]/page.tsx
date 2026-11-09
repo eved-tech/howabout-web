@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { voteIdea } from "@/app/actions";
+import { signOut } from "@/app/auth/actions";
+import { auth } from "@/lib/auth/server";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const dynamic = "force-dynamic";
@@ -22,9 +24,28 @@ export default async function BrandPage({
   });
 
   const sorted = ideas.sort((a, b) => b._count.votes - a._count.votes);
+  const { data: session } = await auth.getSession();
 
   return (
     <main className="mx-auto max-w-xl w-full px-4 py-8">
+      <div className="flex justify-end mb-3 text-sm text-neutral-500">
+        {session?.user ? (
+          <form action={signOut} className="flex items-center gap-2">
+            <input type="hidden" name="redirectTo" value={`/brands/${brand.slug}`} />
+            <span>Signed in as {session.user.name ?? session.user.email}</span>
+            <button type="submit" className="underline hover:text-neutral-700">
+              Sign out
+            </button>
+          </form>
+        ) : (
+          <Link
+            href={`/auth/sign-in?redirectTo=${encodeURIComponent(`/brands/${brand.slug}`)}`}
+            className="underline hover:text-neutral-700"
+          >
+            Sign in
+          </Link>
+        )}
+      </div>
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-medium">
           {brand.name[0]}
