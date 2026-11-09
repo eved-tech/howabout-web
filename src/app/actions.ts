@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth/server";
 import { similarity, DUPLICATE_THRESHOLD } from "@/lib/dedupe";
+import { slugify } from "@/lib/slug";
 
 // Neon Managed Auth owns the account itself; this mirrors the signed-in
 // person into our own `User` row (keyed by email) the first time we see
@@ -25,7 +26,7 @@ export async function searchBrands(query: string) {
   if (!q) return [];
 
   const brands = await prisma.brand.findMany({
-    where: { name: { contains: q, mode: "insensitive" } },
+    where: { name: { contains: q, mode: "insensitive" }, approved: true },
     include: { _count: { select: { ideas: true } } },
     orderBy: { name: "asc" },
     take: 5,
@@ -41,7 +42,7 @@ export async function searchBrands(query: string) {
 
 export async function getBrandSummary(slug: string) {
   const brand = await prisma.brand.findUnique({ where: { slug } });
-  if (!brand) return null;
+  if (!brand || !brand.approved) return null;
 
   const ideas = await prisma.idea.findMany({
     where: { brandId: brand.id },
@@ -84,12 +85,15 @@ export async function checkSimilarIdea(brandSlug: string, text: string) {
   if (!text.trim()) return null;
 
   const brand = await prisma.brand.findUnique({ where: { slug: brandSlug } });
-  if (!brand) return null;
+  if (!brand || !brand.approved) return null;
 
   return findSimilarIdea(brand.id, text);
 }
 
 export async function voteIdea(ideaId: string, brandSlug: string) {
+  const brand = await prisma.brand.findUnique({ where: { slug: brandSlug } });
+  if (!brand || !brand.approved) return;
+
   const user = await getCurrentUser();
   if (!user) {
     redirect(`/auth/sign-in?redirectTo=${encodeURIComponent(`/brands/${brandSlug}`)}`);
@@ -122,7 +126,7 @@ export async function createIdea(input: {
   }
 
   const brand = await prisma.brand.findUnique({ where: { slug: input.brandSlug } });
-  if (!brand) {
+  if (!brand || !brand.approved) {
     return { status: "error", message: "Unknown brand." };
   }
 
@@ -150,6 +154,56 @@ export async function createIdea(input: {
 
   revalidatePath(`/brands/${input.brandSlug}`);
   return { status: "created", ideaId: idea.id };
+}
+
+type CreateBrandAndIdeaResult =
+  | { status: "pending_brand"; brandName: string }
+  | { status: "unauthenticated" }
+  | { status: "error"; message: string };
+
+// A brand nobody's submitted to yet. Created unapproved — it and its idea
+// stay invisible to everyone (search, listings, direct URL) until a human
+// approves it. No dedupe check: there's nothing to dedupe against yet.
+export async function createBrandAndIdea(input: {
+  name: string;
+  text: string;
+  category?: string;
+}): Promise<CreateBrandAndIdeaResult> {
+  const name = input.name.trim();
+  const text = input.text.trim();
+  if (!name) {
+    return { status: "error", message: "Enter the business or brand name first." };
+  }
+  if (!text) {
+    return { status: "error", message: "Enter your idea first." };
+  }
+
+  const user = await getCurrentUser();
+  if (!user) {
+    return { status: "unauthenticated" };
+  }
+
+  const baseSlug = slugify(name) || "brand";
+  let slug = baseSlug;
+  for (let suffix = 2; await prisma.brand.findUnique({ where: { slug } }); suffix++) {
+    slug = `${baseSlug}-${suffix}`;
+  }
+
+  const brand = await prisma.brand.create({
+    data: { name, slug, approved: false },
+  });
+
+  await prisma.idea.create({
+    data: {
+      text,
+      category: input.category,
+      brandId: brand.id,
+      authorId: user.id,
+      source: "WEB",
+    },
+  });
+
+  return { status: "pending_brand", brandName: brand.name };
 }
 
 // Anyone can still call this — brand-side identity (claiming a brand page)

@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const brands = await prisma.brand.findMany({
+    where: { approved: true },
     orderBy: { name: "asc" },
     include: { _count: { select: { ideas: true } } },
   });

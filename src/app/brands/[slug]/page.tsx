@@ -16,7 +16,7 @@ export default async function BrandPage({
   const { slug } = await params;
 
   const brand = await prisma.brand.findUnique({ where: { slug } });
-  if (!brand) notFound();
+  if (!brand || !brand.approved) notFound();
 
   const ideas = await prisma.idea.findMany({
     where: { brandId: brand.id },

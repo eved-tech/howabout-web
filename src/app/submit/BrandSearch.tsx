@@ -76,10 +76,17 @@ export function BrandSearch() {
       )}
 
       {showResults && results.length === 0 && (
-        <p className="text-sm text-neutral-500 mt-3">
-          Can&apos;t find &quot;{query}&quot; — adding new brands isn&apos;t open yet, but
-          it&apos;s coming soon.
-        </p>
+        <div className="mt-3">
+          <p className="text-sm text-neutral-500 mb-2">
+            Can&apos;t find &quot;{query}&quot; on How about yet.
+          </p>
+          <Link
+            href={`/submit/new?name=${encodeURIComponent(query.trim())}`}
+            className="text-sm underline"
+          >
+            Add &quot;{query.trim()}&quot; and submit your idea
+          </Link>
+        </div>
       )}
     </div>
   );

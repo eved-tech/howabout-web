@@ -36,6 +36,9 @@ model Brand {
   name        String
   description String?
   claimed     Boolean  @default(false)
+  // false for a brand created on the fly during idea submission — hidden
+  // from search/listings until a human approves it (separate workflow).
+  approved    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
   ideas Idea[]
