@@ -451,7 +451,7 @@ export default async function HomePage() {
             <div style={{ display: "flex", gap: 32, flexWrap: "wrap", fontSize: 17 }}>
               <a href="#ideas" style={{ textDecoration: "none", padding: "8px 0" }}>Ideas</a>
               <a href="#prizes" style={{ textDecoration: "none", padding: "8px 0" }}>Prizes</a>
-              <a href="#terms" style={{ textDecoration: "none", padding: "8px 0" }}>Terms</a>
+              <a href="/terms" style={{ textDecoration: "none", padding: "8px 0" }}>Terms</a>
               <a href="#privacy" style={{ textDecoration: "none", padding: "8px 0" }}>Privacy</a>
             </div>
           </div>
