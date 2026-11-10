@@ -21,7 +21,7 @@ export default function TermsPage() {
         <p>
           Welcome to How about (<strong>howabout.co.za</strong>). These Terms of Use (&quot;Terms&quot;) govern your
           access to and use of the How about website and service (the &quot;Service&quot;), operated by{" "}
-          <strong>[LEGAL ENTITY / YOUR NAME]</strong> (&quot;How about&quot;, &quot;we&quot;, &quot;us&quot;). By
+          <strong>Agentic Health (Pty) Ltd</strong> (&quot;How about&quot;, &quot;we&quot;, &quot;us&quot;). By
           creating an account or otherwise using the Service, you agree to these Terms. If you don&apos;t agree to
           them, please don&apos;t use the Service.
         </p>
@@ -169,7 +169,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-neutral-900">14. Contact us</h2>
           <p className="mt-2">
-            Questions about these Terms? Reach us at <strong>[CONTACT EMAIL]</strong>.
+            Questions about these Terms? Reach us at <strong>hello@howabout.co.za</strong>.
           </p>
         </section>
       </div>
