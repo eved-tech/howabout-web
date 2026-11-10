@@ -26,6 +26,8 @@ export function RotatingBrandLogo() {
         display: "inline-grid",
         placeItems: "center",
         verticalAlign: "middle",
+        position: "relative",
+        top: "-0.16em",
         height: "0.78em",
         width: "2.6em",
         margin: "0 0.1em",

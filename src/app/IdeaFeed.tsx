@@ -35,7 +35,7 @@ const TABS: { key: keyof IdeaOrders; label: string }[] = [
   { key: "popular", label: "Most popular" },
   { key: "comments", label: "Most comments" },
   { key: "growing", label: "Growing" },
-  { key: "cheering", label: "Ideas you are cheering" },
+  { key: "cheering", label: "Ideas you cheered" },
 ];
 
 const PAGE_SIZE = 6;
@@ -118,7 +118,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
           justifyContent: "space-between",
           flexWrap: "wrap",
           gap: "8px 24px",
-          borderBottom: "2px solid var(--hb-ink)",
+          borderBottom: "1.5px solid var(--hb-divider)",
         }}
       >
         <div className="hb-tabs" role="tablist" aria-label="Sort ideas">
@@ -162,7 +162,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
       <div style={{ display: "flex", flexDirection: "column" }}>
         {visible.map((idea, i) => (
           <article className="hb-row" key={idea.id}>
-            <div className="hb-row-vote" role="group" aria-label="Cheer on this idea">
+            <div className="hb-row-vote" role="group" aria-label="Add your cheer to this idea">
               <div className="hb-countbox">
                 <div className="hb-num">{formatVotes(idea.votes)}</div>
                 <div className="hb-lbl">votes</div>
@@ -181,7 +181,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
                       <path d="M10 16V4M4.5 9.5 10 4l5.5 5.5" />
                     </svg>
                   )}
-                  {idea.voted ? "Cheered" : "Cheer on"}
+                  {idea.voted ? "Cheered" : "Add your cheer"}
                 </button>
               </div>
             </div>
@@ -266,7 +266,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
 
       {tab === "cheering" && !signedIn ? (
         <p style={{ margin: 0, padding: "48px 0", fontSize: 20, fontWeight: 700, textAlign: "center" }}>
-          <Link href="/auth/sign-in" style={{ textDecoration: "underline" }}>Sign in</Link> to see the ideas you&apos;re cheering.
+          <Link href="/auth/sign-in" style={{ textDecoration: "underline" }}>Sign in</Link> to see the ideas you cheered.
         </p>
       ) : (
         filtered.length === 0 && (

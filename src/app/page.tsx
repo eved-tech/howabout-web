@@ -117,7 +117,7 @@ export default async function HomePage() {
 
   return (
     <div className="hb-page" style={{ overflow: "hidden" }}>
-      <header style={{ borderBottom: "2.5px solid var(--hb-ink)", background: "var(--hb-page)" }}>
+      <header style={{ borderBottom: "1.5px solid var(--hb-divider)", background: "var(--hb-page)" }}>
         <nav
           aria-label="Main"
           style={{
@@ -132,11 +132,14 @@ export default async function HomePage() {
         >
           <a href="#top" aria-label="How About, home" style={{ display: "inline-flex", textDecoration: "none" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="how about…?" style={{ height: 32, width: "auto" }} />
+            <img src="/logo.png" alt="how about…?" style={{ height: 48, width: "auto" }} />
           </a>
           <div className="hb-navlinks">
             <a className="hb-navlink" href="#ideas">Ideas</a>
             <a className="hb-navlink" href="#prizes">Prizes</a>
+            <a className="hb-navlink" href="#brand-logos">Brands</a>
+            <a className="hb-navlink" href="#">Newsletter</a>
+            <a className="hb-navlink" href="#">Work with us</a>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             {session?.user ? (
@@ -214,7 +217,7 @@ export default async function HomePage() {
             {newIdeasCount} ideas submitted today
           </p>
           <div style={{ marginTop: 40, display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
-            <Link className="hb-btn hb-btn-o" href="/submit">Share your idea</Link>
+            <Link className="hb-btn hb-btn-o" href="/submit">Share <em>your</em> idea</Link>
           </div>
           <div className="hb-ticker" style={{ marginTop: 48 }}>
             <div className="hb-ticker-track">
@@ -228,12 +231,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="ideas" style={{ borderTop: "2.5px solid var(--hb-ink)", background: "var(--hb-page)" }}>
-        <div className="hb-ideas-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "96px 24px 96px" }}>
+      <section id="ideas" style={{ background: "var(--hb-page)" }}>
+        <div className="hb-ideas-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 24px 96px" }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ maxWidth: 720 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Fresh from the last day</div>
-              <h2 className="hb-heading" style={{ margin: "12px 0 0", fontWeight: 600, fontSize: "clamp(32px, 5.4vw, 60px)", lineHeight: 1.08, letterSpacing: "-0.01em" }}>
+              <h2 className="hb-heading" style={{ margin: 0, fontWeight: 600, fontSize: "clamp(32px, 5.4vw, 60px)", lineHeight: 1.08, letterSpacing: "-0.01em" }}>
                 Ideas hatched by South Africans
               </h2>
             </div>
@@ -328,7 +330,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section id="prizes" style={{ background: "var(--hb-orange)", borderTop: "2.5px solid var(--hb-ink)", borderBottom: "2.5px solid var(--hb-ink)" }}>
+      <section id="prizes" style={{ background: "var(--hb-orange)", borderTop: "1.5px solid var(--hb-divider)", borderBottom: "1.5px solid var(--hb-divider)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "96px 24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(420px, 100%), 1fr))", gap: 56, alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Prizes</div>
@@ -407,7 +409,7 @@ export default async function HomePage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 40, flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 320 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="how about…?" style={{ height: 30, width: "auto" }} />
+              <img src="/logo.png" alt="how about…?" style={{ height: 30, width: "auto", alignSelf: "flex-start" }} />
               <p style={{ margin: 0, fontSize: 16, lineHeight: 1.5, color: "#E9DFCB" }}>
                 Ideas from South Africans, for the brands we deal with every day.
               </p>

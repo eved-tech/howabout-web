@@ -8,7 +8,7 @@
   --hb-orange: #ff751f;
   --hb-burnt: #c2410c;
   --hb-ink: #1f1a17;
-  --hb-page: #fffdf8;
+  --hb-page: #fffffb;
   --hb-divider: #e4d5bd;
   --hb-chip-border: #d9c7a8;
 }
@@ -178,7 +178,7 @@ body {
   align-items: flex-start;
   gap: 36px;
   padding: 48px 0;
-  border-bottom: 2px solid var(--hb-divider);
+  border-bottom: 1.5px solid var(--hb-divider);
 }
 .hb-row:last-child {
   border-bottom: 0;
@@ -191,9 +191,9 @@ body {
   gap: 10px;
 }
 .hb-row-div {
-  width: 2px;
+  width: 1.5px;
   align-self: stretch;
-  background: #e6dac4;
+  background: var(--hb-divider);
   flex-shrink: 0;
 }
 .hb-btns {
@@ -343,9 +343,9 @@ body {
   color: var(--hb-ink);
 }
 .hb-tab[aria-selected="true"] {
-  color: var(--hb-ink);
+  color: var(--hb-orange);
   font-weight: 700;
-  border-bottom-color: var(--hb-ink);
+  border-bottom-color: var(--hb-orange);
 }
 .hb-searchwrap {
   position: relative;
