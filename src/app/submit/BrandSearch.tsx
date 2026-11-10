@@ -40,7 +40,7 @@ export function BrandSearch() {
 
   return (
     <div>
-      <label htmlFor="brand-search" className="block text-xs text-neutral-500 mb-1">
+      <label htmlFor="brand-search" className="hb-field-label">
         Which business or brand?
       </label>
       <input
@@ -49,24 +49,25 @@ export function BrandSearch() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Start typing a brand name…"
-        className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+        className="hb-field-input"
         autoComplete="off"
       />
 
-      {searching && (
-        <p className="text-xs text-neutral-400 mt-2">Searching…</p>
-      )}
+      {searching && <p className="hb-field-count" style={{ textAlign: "left" }}>Searching…</p>}
 
       {showResults && results.length > 0 && (
-        <div className="mt-3 border border-neutral-200 rounded-lg divide-y divide-neutral-200">
+        <div
+          style={{
+            marginTop: 20,
+            border: "2.5px solid var(--hb-ink)",
+            borderRadius: 18,
+            overflow: "hidden",
+          }}
+        >
           {results.map((brand) => (
-            <Link
-              key={brand.slug}
-              href={`/brands/${brand.slug}/submit`}
-              className="flex items-center justify-between px-3 py-2.5 hover:bg-neutral-50"
-            >
-              <span className="text-sm font-medium">{brand.name}</span>
-              <span className="text-xs text-neutral-500">
+            <Link key={brand.slug} href={`/brands/${brand.slug}/submit`} className="hb-result-row">
+              <span style={{ fontWeight: 700, fontSize: 16 }}>{brand.name}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#6b5f55" }}>
                 {brand.claimed ? "Claimed" : "Not claimed"} · {brand.ideaCount}{" "}
                 {brand.ideaCount === 1 ? "idea" : "ideas"}
               </span>
@@ -76,14 +77,11 @@ export function BrandSearch() {
       )}
 
       {showResults && results.length === 0 && (
-        <div className="mt-3">
-          <p className="text-sm text-neutral-500 mb-2">
+        <div style={{ marginTop: 20 }}>
+          <p style={{ margin: "0 0 10px", fontSize: 15 }}>
             Can&apos;t find &quot;{query}&quot; on How about yet.
           </p>
-          <Link
-            href={`/submit/new?name=${encodeURIComponent(query.trim())}`}
-            className="text-sm underline"
-          >
+          <Link className="hb-link" href={`/submit/new?name=${encodeURIComponent(query.trim())}`}>
             Add &quot;{query.trim()}&quot; and submit your idea
           </Link>
         </div>

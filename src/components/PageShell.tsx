@@ -1,6 +1,16 @@
 import Link from "next/link";
 
-export function AuthShell({ title, children }: { title: string; children: React.ReactNode }) {
+export function PageShell({
+  title,
+  subtitle,
+  maxWidth = 420,
+  children,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  maxWidth?: number;
+  children: React.ReactNode;
+}) {
   return (
     <div className="hb-page" style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
       <div
@@ -21,7 +31,7 @@ export function AuthShell({ title, children }: { title: string; children: React.
           style={{
             marginTop: 40,
             width: "100%",
-            maxWidth: 420,
+            maxWidth,
             background: "#ffffff",
             border: "2.5px solid var(--hb-ink)",
             borderRadius: 28,
@@ -35,6 +45,9 @@ export function AuthShell({ title, children }: { title: string; children: React.
           >
             {title}
           </h1>
+          {subtitle && (
+            <div style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: "#3A322C" }}>{subtitle}</div>
+          )}
           <div style={{ marginTop: 24 }}>{children}</div>
         </div>
       </div>

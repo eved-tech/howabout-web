@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signInWithEmail } from "./actions";
 import { VerifyCodeForm } from "../VerifyCodeForm";
-import { AuthShell } from "../AuthShell";
+import { PageShell } from "@/components/PageShell";
 
 export default function SignInPage() {
   return (
@@ -21,14 +21,14 @@ function SignInForm() {
 
   if (state && "status" in state && state.status === "verify") {
     return (
-      <AuthShell title="Verify your email">
+      <PageShell title="Verify your email">
         <VerifyCodeForm email={state.email} redirectTo={state.redirectTo} />
-      </AuthShell>
+      </PageShell>
     );
   }
 
   return (
-    <AuthShell title="Welcome back">
+    <PageShell title="Welcome back">
       <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <input type="hidden" name="redirectTo" value={redirectTo} />
         <div>
@@ -55,10 +55,10 @@ function SignInForm() {
       </form>
       <p style={{ marginTop: 24, fontSize: 15 }}>
         No account yet?{" "}
-        <Link className="hb-auth-link" href={`/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`}>
+        <Link className="hb-link" href={`/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`}>
           Sign up
         </Link>
       </p>
-    </AuthShell>
+    </PageShell>
   );
 }

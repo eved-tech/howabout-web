@@ -53,7 +53,7 @@ export function VerifyCodeForm({ email, redirectTo }: { email: string; redirectT
         type="button"
         onClick={resend}
         disabled={resending}
-        className="hb-auth-link"
+        className="hb-link"
         style={{ background: "none", border: "none", padding: 0, marginTop: 16, font: "inherit", cursor: "pointer", opacity: resending ? 0.6 : 1 }}
       >
         {resending ? "Sending…" : resent ? "Code resent — check your email" : "Resend code"}

@@ -76,12 +76,12 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
 
   if (done) {
     return (
-      <div className="text-center py-10">
-        <p className="text-green-700 font-medium mb-2">Thanks — that&apos;s in.</p>
-        <p className="text-sm text-neutral-500 mb-4">
+      <div style={{ textAlign: "center", padding: "24px 0" }}>
+        <p style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700 }}>Thanks — that&apos;s in.</p>
+        <p style={{ margin: "0 0 20px", fontSize: 15, color: "#6b5f55" }}>
           Your idea is live on {brandName}&apos;s page now.
         </p>
-        <Link href={`/brands/${brandSlug}`} className="text-sm underline">
+        <Link className="hb-link" href={`/brands/${brandSlug}`}>
           Back to {brandName}
         </Link>
       </div>
@@ -91,19 +91,14 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
   return (
     <div>
       {needsAuth && (
-        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <p className="text-sm mb-2">Sign in to submit an idea — your draft is still here.</p>
-          <Link
-            href={`/auth/sign-in?redirectTo=${encodeURIComponent(`/brands/${brandSlug}/submit`)}`}
-            className="text-sm underline"
-          >
+        <div className="hb-notice" style={{ marginBottom: 20 }}>
+          <p style={{ margin: "0 0 8px" }}>Sign in to submit an idea — your draft is still here.</p>
+          <Link className="hb-link" href={`/auth/sign-in?redirectTo=${encodeURIComponent(`/brands/${brandSlug}/submit`)}`}>
             Sign in or create an account
           </Link>
         </div>
       )}
-      <label className="block text-xs text-neutral-500 mb-1">
-        What should {brandName} do differently? (headline)
-      </label>
+      <label className="hb-field-label">What should {brandName} do differently? (headline)</label>
       <input
         type="text"
         value={headline}
@@ -113,11 +108,11 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
           setError(null);
         }}
         placeholder="Sell fresh milk in smaller boxes"
-        className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+        className="hb-field-input"
       />
-      <p className="text-xs text-neutral-400 mt-1 text-right">{headline.length}/{HEADLINE_MAX}</p>
+      <p className="hb-field-count">{headline.length}/{HEADLINE_MAX}</p>
 
-      <label className="block text-xs text-neutral-500 mt-3 mb-1">A bit more detail</label>
+      <label className="hb-field-label" style={{ marginTop: 16 }}>A bit more detail</label>
       <textarea
         value={body}
         maxLength={BODY_MAX}
@@ -126,34 +121,33 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
           setError(null);
         }}
         placeholder="250ml boxes so it doesn't go off before I finish a litre..."
-        className="w-full min-h-[90px] border border-neutral-300 rounded-md px-3 py-2 text-sm"
+        className="hb-field-textarea"
       />
-      <p className="text-xs text-neutral-400 mt-1 text-right">{body.length}/{BODY_MAX}</p>
-      {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
-      {showChecking && (
-        <p className="text-xs text-neutral-400 mt-1">Checking for similar ideas…</p>
-      )}
+      <p className="hb-field-count">{body.length}/{BODY_MAX}</p>
+      {error && <p className="hb-field-error">{error}</p>}
+      {showChecking && <p className="hb-field-count" style={{ textAlign: "left" }}>Checking for similar ideas…</p>}
 
       {showDuplicate && duplicate && (
-        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-xs font-medium text-blue-800 mb-1.5">
-            Similar idea already posted
-          </p>
-          <p className="text-sm mb-2">
+        <div className="hb-notice-info" style={{ marginTop: 16 }}>
+          <p style={{ margin: "0 0 8px", fontWeight: 700 }}>Similar idea already posted</p>
+          <p style={{ margin: "0 0 12px" }}>
             &quot;{duplicate.headline}&quot; · {duplicate.votes} votes
           </p>
-          <div className="flex gap-2">
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
+              type="button"
               onClick={upvoteExisting}
               disabled={pending}
-              className="text-sm border border-neutral-300 rounded-md px-3 py-1.5 hover:bg-neutral-50"
+              className="hb-btn hb-btn-c hb-btn-s"
             >
               Upvote this instead
             </button>
             <button
+              type="button"
               onClick={() => submit(true)}
               disabled={pending}
-              className="text-sm text-neutral-500 px-3 py-1.5 hover:underline"
+              className="hb-link"
+              style={{ background: "none", border: "none", font: "inherit", cursor: "pointer" }}
             >
               Submit mine anyway
             </button>
@@ -161,17 +155,15 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
         </div>
       )}
 
-      <label className="block text-xs text-neutral-500 mt-4 mb-1.5">Category</label>
-      <div className="flex gap-2 flex-wrap mb-5">
+      <label className="hb-field-label" style={{ marginTop: 20 }}>Category</label>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 8, marginBottom: 24 }}>
         {CATEGORIES.map((c) => (
           <button
             key={c}
+            type="button"
+            aria-pressed={category === c}
+            className="hb-chip-toggle"
             onClick={() => setCategory(c === category ? null : c)}
-            className={`text-sm px-3 py-1.5 rounded-md border ${
-              category === c
-                ? "bg-neutral-100 border-neutral-300"
-                : "border-neutral-300 hover:bg-neutral-50"
-            }`}
           >
             {c}
           </button>
@@ -179,9 +171,11 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
       </div>
 
       <button
+        type="button"
         onClick={() => submit(false)}
         disabled={pending}
-        className="w-full bg-neutral-900 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50"
+        className="hb-btn hb-btn-o hb-btn-l"
+        style={{ opacity: pending ? 0.6 : 1 }}
       >
         {pending ? "Checking…" : "Go on, say it"}
       </button>
