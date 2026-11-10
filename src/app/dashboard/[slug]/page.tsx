@@ -1,6 +1,9 @@
-import { notFound } from "next/navigation";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isWithinLastWeek } from "@/lib/time";
+import { isBrandOwner } from "@/app/actions";
+import { auth } from "@/lib/auth/server";
 import { IdeaRow } from "./IdeaRow";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +16,25 @@ export default async function DashboardPage({
   const { slug } = await params;
   const brand = await prisma.brand.findUnique({ where: { slug } });
   if (!brand) notFound();
+
+  const { data: session } = await auth.getSession();
+  if (!session?.user) {
+    redirect(`/auth/sign-in?redirectTo=${encodeURIComponent(`/dashboard/${slug}`)}`);
+  }
+
+  if (!(await isBrandOwner(slug))) {
+    return (
+      <main className="mx-auto max-w-xl w-full px-4 py-16 text-center">
+        <h1 className="font-medium text-lg mb-2">This dashboard belongs to {brand.name}</h1>
+        <p className="text-sm text-neutral-500 mb-6">
+          If that&apos;s you, get in touch and we&apos;ll set you up with access.
+        </p>
+        <Link href="/" className="text-sm underline">
+          Back to How about
+        </Link>
+      </main>
+    );
+  }
 
   const ideas = await prisma.idea.findMany({
     where: { brandId: brand.id },

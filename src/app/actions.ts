@@ -233,14 +233,26 @@ export async function createBrandAndIdea(input: {
   return { status: "pending_brand", brandName: brand.name };
 }
 
-// Anyone can still call this — brand-side identity (claiming a brand page)
-// isn't built yet, so the dashboard has no access control of its own.
 export async function respondToIdea(input: {
   ideaId: string;
   brandSlug: string;
   response: string;
   status: "PLANNED" | "RESPONDED" | "DECLINED";
 }) {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const idea = await prisma.idea.findUnique({
+    where: { id: input.ideaId },
+    select: { brandId: true },
+  });
+  if (!idea) return;
+
+  const owner = await prisma.brandOwner.findUnique({
+    where: { brandId_userId: { brandId: idea.brandId, userId: user.id } },
+  });
+  if (!owner) return;
+
   await prisma.idea.update({
     where: { id: input.ideaId },
     data: {
@@ -252,4 +264,61 @@ export async function respondToIdea(input: {
 
   revalidatePath(`/dashboard/${input.brandSlug}`);
   revalidatePath(`/brands/${input.brandSlug}`);
+}
+
+export async function isBrandOwner(brandSlug: string) {
+  const user = await getCurrentUser();
+  if (!user) return false;
+
+  const brand = await prisma.brand.findUnique({ where: { slug: brandSlug } });
+  if (!brand) return false;
+
+  const owner = await prisma.brandOwner.findUnique({
+    where: { brandId_userId: { brandId: brand.id, userId: user.id } },
+  });
+  return !!owner;
+}
+
+async function requireAdmin() {
+  const { data: session } = await auth.getSession();
+  if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
+    throw new Error("Not authorized.");
+  }
+}
+
+export async function listBrandsForAdmin() {
+  await requireAdmin();
+  return prisma.brand.findMany({
+    orderBy: { name: "asc" },
+    include: { owners: { include: { user: true } } },
+  });
+}
+
+export async function grantBrandOwnership(brandSlug: string, email: string) {
+  await requireAdmin();
+
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) return { status: "error", message: "Enter an email first." } as const;
+
+  const brand = await prisma.brand.findUnique({ where: { slug: brandSlug } });
+  if (!brand) return { status: "error", message: "Unknown brand." } as const;
+
+  const user = await prisma.user.upsert({
+    where: { email: normalizedEmail },
+    update: {},
+    create: { email: normalizedEmail },
+  });
+
+  await prisma.brandOwner.upsert({
+    where: { brandId_userId: { brandId: brand.id, userId: user.id } },
+    update: {},
+    create: { brandId: brand.id, userId: user.id },
+  });
+
+  if (!brand.claimed) {
+    await prisma.brand.update({ where: { id: brand.id }, data: { claimed: true } });
+  }
+
+  revalidatePath("/admin");
+  return { status: "ok" } as const;
 }

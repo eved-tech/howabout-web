@@ -28,6 +28,7 @@ model User {
 
   ideas Idea[]
   votes Vote[]
+  ownedBrands BrandOwner[]
 }
 
 model Brand {
@@ -41,7 +42,24 @@ model Brand {
   approved    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  ideas Idea[]
+  ideas  Idea[]
+  owners BrandOwner[]
+}
+
+// Links a signed-in User to a Brand they're allowed to manage the dashboard
+// for. Rows are granted by an admin for now (no self-serve brand claim flow
+// yet) — see `grantBrandOwnership` in actions.ts.
+model BrandOwner {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([brandId, userId])
 }
 
 model Idea {
