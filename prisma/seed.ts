@@ -33,12 +33,16 @@ async function main() {
 
   const milkIdea = await prisma.idea.upsert({
     where: { id: "seed-milk-idea" },
-    update: {},
+    update: {
+      headline: "Sell fresh milk in small 250ml boxes",
+      body: "Sell fresh milk in 250ml boxes so it doesn't go off before I finish a litre",
+    },
     create: {
       id: "seed-milk-idea",
       brandId: woolworths.id,
       authorId: voters[0].id,
-      text: "Sell fresh milk in 250ml boxes so it doesn't go off before I finish a litre",
+      headline: "Sell fresh milk in small 250ml boxes",
+      body: "Sell fresh milk in 250ml boxes so it doesn't go off before I finish a litre",
       category: "Product",
       status: "RESPONDED",
       response:
@@ -49,12 +53,16 @@ async function main() {
 
   const checkoutIdea = await prisma.idea.upsert({
     where: { id: "seed-checkout-idea" },
-    update: {},
+    update: {
+      headline: "Add a self-checkout lane",
+      body: "Add a self-checkout lane at the Rondebosch store",
+    },
     create: {
       id: "seed-checkout-idea",
       brandId: woolworths.id,
       authorId: voters[1].id,
-      text: "Add a self-checkout lane at the Rondebosch store",
+      headline: "Add a self-checkout lane",
+      body: "Add a self-checkout lane at the Rondebosch store",
       category: "Store experience",
       status: "NEW",
     },
@@ -62,12 +70,16 @@ async function main() {
 
   const loyaltyIdea = await prisma.idea.upsert({
     where: { id: "seed-loyalty-idea" },
-    update: {},
+    update: {
+      headline: "Bring back the loyalty stamp card",
+      body: "Bring back the old loyalty stamp card alongside the app",
+    },
     create: {
       id: "seed-loyalty-idea",
       brandId: woolworths.id,
       authorId: voters[2].id,
-      text: "Bring back the old loyalty stamp card alongside the app",
+      headline: "Bring back the loyalty stamp card",
+      body: "Bring back the old loyalty stamp card alongside the app",
       category: "Service",
       status: "PLANNED",
     },
@@ -75,12 +87,16 @@ async function main() {
 
   await prisma.idea.upsert({
     where: { id: "seed-parking-idea" },
-    update: {},
+    update: {
+      headline: "Accept the Admyt payment app",
+      body: "Accept the Admyt app as a parking payment option",
+    },
     create: {
       id: "seed-parking-idea",
       brandId: clubMall.id,
       authorId: voters[3].id,
-      text: "Accept the Admyt app as a parking payment option",
+      headline: "Accept the Admyt payment app",
+      body: "Accept the Admyt app as a parking payment option",
       category: "Service",
       status: "NEW",
     },
@@ -88,12 +104,16 @@ async function main() {
 
   await prisma.idea.upsert({
     where: { id: "seed-pumpkin-idea" },
-    update: {},
+    update: {
+      headline: "Add a pumpkin spice coffee flavour",
+      body: "Add a pumpkin spice flavoured coffee for the summer menu",
+    },
     create: {
       id: "seed-pumpkin-idea",
       brandId: plato.id,
       authorId: voters[4].id,
-      text: "Add a pumpkin spice flavoured coffee for the summer menu",
+      headline: "Add a pumpkin spice coffee flavour",
+      body: "Add a pumpkin spice flavoured coffee for the summer menu",
       category: "Product",
       status: "NEW",
     },

@@ -19,6 +19,13 @@ enum IdeaStatus {
   DECLINED
 }
 
+// Null = no ruling yet (the "report as complaint" button still shows).
+// Once a human rules either way, it's final — the report button disappears.
+enum ModerationStatus {
+  CLEAR
+  COMPLAINT
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String?
@@ -63,14 +70,22 @@ model BrandOwner {
 }
 
 model Idea {
-  id          String     @id @default(cuid())
-  text        String
+  id       String @id @default(cuid())
+  headline String
+  body     String
+
   category    String?
   status      IdeaStatus @default(NEW)
   source      Source     @default(WEB)
   response    String?
   respondedAt DateTime?
   createdAt   DateTime   @default(now())
+
+  // Set by the submission-time filter (obvious profanity/anger) or by a
+  // human ruling on a report — see src/lib/moderation.ts and
+  // `moderateIdea`/`reportIdea` in actions.ts.
+  moderationStatus ModerationStatus?
+  reportedAt       DateTime?
 
   brandId String
   brand   Brand  @relation(fields: [brandId], references: [id])

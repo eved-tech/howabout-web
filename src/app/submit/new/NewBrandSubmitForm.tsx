@@ -5,9 +5,12 @@ import Link from "next/link";
 import { createBrandAndIdea } from "@/app/actions";
 
 const CATEGORIES = ["Product", "Service", "Store experience"];
+const HEADLINE_MAX = 60;
+const BODY_MAX = 240;
 
 export function NewBrandSubmitForm({ brandName }: { brandName: string }) {
-  const [text, setText] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [body, setBody] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
@@ -17,7 +20,7 @@ export function NewBrandSubmitForm({ brandName }: { brandName: string }) {
   function submit() {
     setError(null);
     startTransition(async () => {
-      const result = await createBrandAndIdea({ name: brandName, text, category: category ?? undefined });
+      const result = await createBrandAndIdea({ name: brandName, headline, body, category: category ?? undefined });
       if (result.status === "error") {
         setError(result.message);
       } else if (result.status === "unauthenticated") {
@@ -59,17 +62,33 @@ export function NewBrandSubmitForm({ brandName }: { brandName: string }) {
         </div>
       )}
       <label className="block text-xs text-neutral-500 mb-1">
-        What should {brandName} do differently?
+        What should {brandName} do differently? (headline)
       </label>
-      <textarea
-        value={text}
+      <input
+        type="text"
+        value={headline}
+        maxLength={HEADLINE_MAX}
         onChange={(e) => {
-          setText(e.target.value);
+          setHeadline(e.target.value);
           setError(null);
         }}
-        placeholder="Sell fresh milk in 250ml boxes for..."
+        placeholder="Sell fresh milk in smaller boxes"
+        className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+      />
+      <p className="text-xs text-neutral-400 mt-1 text-right">{headline.length}/{HEADLINE_MAX}</p>
+
+      <label className="block text-xs text-neutral-500 mt-3 mb-1">A bit more detail</label>
+      <textarea
+        value={body}
+        maxLength={BODY_MAX}
+        onChange={(e) => {
+          setBody(e.target.value);
+          setError(null);
+        }}
+        placeholder="250ml boxes so it doesn't go off before I finish a litre..."
         className="w-full min-h-[90px] border border-neutral-300 rounded-md px-3 py-2 text-sm"
       />
+      <p className="text-xs text-neutral-400 mt-1 text-right">{body.length}/{BODY_MAX}</p>
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
 
       <label className="block text-xs text-neutral-500 mt-4 mb-1.5">Category</label>

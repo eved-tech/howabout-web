@@ -2,12 +2,13 @@
 
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
-import { toggleCheer } from "./actions";
+import { toggleCheer, reportIdea } from "./actions";
 import { colorFor, initialFor } from "@/lib/palette";
 
 export type IdeaVM = {
   id: string;
-  text: string;
+  headline: string;
+  body: string;
   category: string | null;
   brandName: string;
   brandSlug: string;
@@ -15,6 +16,8 @@ export type IdeaVM = {
   votes: number;
   voted: boolean;
   commentsCount: number;
+  reportable: boolean;
+  reported: boolean;
 };
 
 export type IdeaOrders = {
@@ -51,6 +54,7 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
           : idea
       )
   );
+  const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
 
   const byId = useMemo(() => new Map(optimisticIdeas.map((idea) => [idea.id, idea])), [optimisticIdeas]);
 
@@ -58,7 +62,13 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
   const filtered = orders[tab]
     .map((id) => byId.get(id))
     .filter((idea): idea is IdeaVM => !!idea)
-    .filter((idea) => !q || idea.text.toLowerCase().includes(q) || idea.brandName.toLowerCase().includes(q));
+    .filter(
+      (idea) =>
+        !q ||
+        idea.headline.toLowerCase().includes(q) ||
+        idea.body.toLowerCase().includes(q) ||
+        idea.brandName.toLowerCase().includes(q)
+    );
 
   const visible = filtered.slice(0, visibleCount);
 
@@ -66,6 +76,13 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
     startTransition(async () => {
       cheerOptimistically(ideaId);
       await toggleCheer(ideaId);
+    });
+  }
+
+  function report(ideaId: string) {
+    setReportedIds((prev) => new Set(prev).add(ideaId));
+    startTransition(async () => {
+      await reportIdea(ideaId);
     });
   }
 
@@ -156,8 +173,9 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
                 className="hb-heading"
                 style={{ margin: 0, fontWeight: 600, fontSize: "clamp(28px, 3.4vw, 40px)", lineHeight: 1.1, letterSpacing: "-0.01em" }}
               >
-                {idea.text}
+                {idea.headline}
               </h3>
+              <p style={{ margin: 0, fontSize: 17, lineHeight: 1.45, color: "#3A322C" }}>{idea.body}</p>
               <div style={{ display: "flex", alignItems: "center", gap: "8px 14px", flexWrap: "wrap", fontSize: 16, color: "#3A322C" }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                   <span
@@ -173,6 +191,22 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
                 </span>
                 <span aria-hidden="true">•</span>
                 <span>Comments: {idea.commentsCount}</span>
+                {idea.reportable && (
+                  <>
+                    <span aria-hidden="true">•</span>
+                    {idea.reported || reportedIds.has(idea.id) ? (
+                      <span>Reported — awaiting review</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => report(idea.id)}
+                        style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "inherit", textDecoration: "underline", cursor: "pointer" }}
+                      >
+                        Report as complaint
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </article>

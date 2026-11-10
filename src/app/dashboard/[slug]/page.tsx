@@ -79,7 +79,8 @@ export default async function DashboardPage({
             key={idea.id}
             idea={{
               id: idea.id,
-              text: idea.text,
+              headline: idea.headline,
+              body: idea.body,
               status: idea.status,
               votes: idea._count.votes,
               response: idea.response,

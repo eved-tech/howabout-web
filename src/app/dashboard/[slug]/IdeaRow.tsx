@@ -11,7 +11,7 @@ export function IdeaRow({
   brandSlug,
   startExpanded = false,
 }: {
-  idea: { id: string; text: string; status: string; votes: number; response: string | null };
+  idea: { id: string; headline: string; body: string; status: string; votes: number; response: string | null };
   brandSlug: string;
   startExpanded?: boolean;
 }) {
@@ -41,12 +41,13 @@ export function IdeaRow({
           <span aria-hidden className="text-blue-700">▲</span>
           <span className="text-sm font-medium">{idea.votes}</span>
         </div>
-        <span className="flex-1 text-sm truncate">{idea.text}</span>
+        <span className="flex-1 text-sm truncate">{idea.headline}</span>
         <StatusBadge status={idea.status} />
       </button>
 
       {open && (
         <div className="bg-neutral-50 rounded-lg p-3 mb-4">
+          <p className="text-sm text-neutral-600 mb-2">{idea.body}</p>
           <textarea
             value={response}
             onChange={(e) => setResponse(e.target.value)}

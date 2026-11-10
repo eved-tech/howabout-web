@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/server";
 import { listBrandsForAdmin } from "@/app/actions";
@@ -22,7 +23,10 @@ export default async function AdminPage() {
 
   return (
     <main className="mx-auto max-w-2xl w-full px-4 py-8">
-      <h1 className="font-medium text-lg mb-1">Brand dashboard access</h1>
+      <Link href="/admin/moderation" className="text-sm underline">
+        Moderation queue →
+      </Link>
+      <h1 className="font-medium text-lg mt-3 mb-1">Brand dashboard access</h1>
       <p className="text-sm text-neutral-500 mb-6">
         Grant someone access to a brand&apos;s dashboard by email. They&apos;ll need to sign in
         with that same email to use it.

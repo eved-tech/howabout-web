@@ -6,18 +6,23 @@ import { createIdea, voteIdea, checkSimilarIdea } from "@/app/actions";
 
 const CATEGORIES = ["Product", "Service", "Store experience"];
 
+const HEADLINE_MAX = 60;
+const BODY_MAX = 240;
+
 export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandName: string }) {
-  const [text, setText] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [body, setBody] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [duplicate, setDuplicate] = useState<{ id: string; text: string; votes: number } | null>(null);
+  const [duplicate, setDuplicate] = useState<{ id: string; headline: string; votes: number } | null>(null);
   const [checkedText, setCheckedText] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [pending, startTransition] = useTransition();
   const checkId = useRef(0);
 
-  const tooShortToCheck = text.trim().length < 8;
+  const combined = `${headline} ${body}`;
+  const tooShortToCheck = combined.trim().length < 8;
 
   // Live dedupe-as-you-type: debounced so we're not hitting the server on
   // every keystroke, and guarded against out-of-order responses. "Checking"
@@ -30,23 +35,23 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
 
     const id = checkId.current;
     const timer = setTimeout(async () => {
-      const match = await checkSimilarIdea(brandSlug, text);
+      const match = await checkSimilarIdea(brandSlug, headline, body);
       if (checkId.current === id) {
         setDuplicate(match);
-        setCheckedText(text);
+        setCheckedText(combined);
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [text, brandSlug, tooShortToCheck]);
+  }, [combined, headline, body, brandSlug, tooShortToCheck]);
 
   const showDuplicate = !tooShortToCheck && duplicate;
-  const showChecking = !tooShortToCheck && !duplicate && checkedText !== text;
+  const showChecking = !tooShortToCheck && !duplicate && checkedText !== combined;
 
   function submit(force: boolean) {
     setError(null);
     startTransition(async () => {
-      const result = await createIdea({ brandSlug, text, category: category ?? undefined, force });
+      const result = await createIdea({ brandSlug, headline, body, category: category ?? undefined, force });
       if (result.status === "error") {
         setError(result.message);
       } else if (result.status === "duplicate") {
@@ -74,7 +79,7 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
       <div className="text-center py-10">
         <p className="text-green-700 font-medium mb-2">Thanks — that&apos;s in.</p>
         <p className="text-sm text-neutral-500 mb-4">
-          Your idea is pending moderation before it appears on {brandName}&apos;s page.
+          Your idea is live on {brandName}&apos;s page now.
         </p>
         <Link href={`/brands/${brandSlug}`} className="text-sm underline">
           Back to {brandName}
@@ -97,17 +102,33 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
         </div>
       )}
       <label className="block text-xs text-neutral-500 mb-1">
-        What should {brandName} do differently?
+        What should {brandName} do differently? (headline)
       </label>
-      <textarea
-        value={text}
+      <input
+        type="text"
+        value={headline}
+        maxLength={HEADLINE_MAX}
         onChange={(e) => {
-          setText(e.target.value);
+          setHeadline(e.target.value);
           setError(null);
         }}
-        placeholder="Sell fresh milk in 250ml boxes for..."
+        placeholder="Sell fresh milk in smaller boxes"
+        className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
+      />
+      <p className="text-xs text-neutral-400 mt-1 text-right">{headline.length}/{HEADLINE_MAX}</p>
+
+      <label className="block text-xs text-neutral-500 mt-3 mb-1">A bit more detail</label>
+      <textarea
+        value={body}
+        maxLength={BODY_MAX}
+        onChange={(e) => {
+          setBody(e.target.value);
+          setError(null);
+        }}
+        placeholder="250ml boxes so it doesn't go off before I finish a litre..."
         className="w-full min-h-[90px] border border-neutral-300 rounded-md px-3 py-2 text-sm"
       />
+      <p className="text-xs text-neutral-400 mt-1 text-right">{body.length}/{BODY_MAX}</p>
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
       {showChecking && (
         <p className="text-xs text-neutral-400 mt-1">Checking for similar ideas…</p>
@@ -119,7 +140,7 @@ export function SubmitForm({ brandSlug, brandName }: { brandSlug: string; brandN
             Similar idea already posted
           </p>
           <p className="text-sm mb-2">
-            &quot;{duplicate.text}&quot; · {duplicate.votes} votes
+            &quot;{duplicate.headline}&quot; · {duplicate.votes} votes
           </p>
           <div className="flex gap-2">
             <button

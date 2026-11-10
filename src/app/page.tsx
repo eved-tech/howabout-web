@@ -14,7 +14,10 @@ async function loadIdeas(currentUserId: string | null) {
   const [newIdeasCount, rows] = await Promise.all([
     prisma.idea.count({ where: { createdAt: { gte: since24h }, brand: { approved: true } } }),
     prisma.idea.findMany({
-      where: { brand: { approved: true } },
+      where: {
+        brand: { approved: true },
+        OR: [{ moderationStatus: null }, { moderationStatus: "CLEAR" }],
+      },
       orderBy: { createdAt: "desc" },
       take: 40,
       include: {
@@ -46,7 +49,8 @@ async function loadIdeas(currentUserId: string | null) {
 
   const ideas: IdeaVM[] = rows.map((idea) => ({
     id: idea.id,
-    text: idea.text,
+    headline: idea.headline,
+    body: idea.body,
     category: idea.category,
     brandName: idea.brand.name,
     brandSlug: idea.brand.slug,
@@ -54,6 +58,8 @@ async function loadIdeas(currentUserId: string | null) {
     votes: idea._count.votes,
     voted: myVotedIds.has(idea.id),
     commentsCount: 0,
+    reportable: idea.moderationStatus === null,
+    reported: idea.reportedAt !== null,
   }));
 
   const latest = [...ideas].sort((a, b) => rows.findIndex((r) => r.id === a.id) - rows.findIndex((r) => r.id === b.id));

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { voteIdea } from "@/app/actions";
+import { voteIdea, reportIdea } from "@/app/actions";
 import { signOut } from "@/app/auth/actions";
 import { auth } from "@/lib/auth/server";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -19,7 +19,10 @@ export default async function BrandPage({
   if (!brand || !brand.approved) notFound();
 
   const ideas = await prisma.idea.findMany({
-    where: { brandId: brand.id },
+    where: {
+      brandId: brand.id,
+      OR: [{ moderationStatus: null }, { moderationStatus: "CLEAR" }],
+    },
     include: { _count: { select: { votes: true } } },
   });
 
@@ -67,6 +70,8 @@ export default async function BrandPage({
       <div className="border-t border-neutral-200">
         {sorted.map((idea) => {
           const vote = voteIdea.bind(null, idea.id, brand.slug);
+          const report = reportIdea.bind(null, idea.id);
+          const reportable = idea.moderationStatus === null;
           return (
             <div
               key={idea.id}
@@ -84,11 +89,23 @@ export default async function BrandPage({
                 </button>
               </form>
               <div className="flex-1">
-                <p className="text-sm mb-1.5">{idea.text}</p>
+                <p className="text-sm font-medium mb-1">{idea.headline}</p>
+                <p className="text-sm text-neutral-600 mb-1.5">{idea.body}</p>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={idea.status} />
                   {idea.category && (
                     <span className="text-xs text-neutral-400">{idea.category}</span>
+                  )}
+                  {reportable && (
+                    idea.reportedAt ? (
+                      <span className="text-xs text-neutral-400">Reported — awaiting review</span>
+                    ) : (
+                      <form action={report}>
+                        <button type="submit" className="text-xs text-neutral-400 underline hover:text-neutral-600">
+                          Report as complaint
+                        </button>
+                      </form>
+                    )
                   )}
                 </div>
                 {idea.response && (
