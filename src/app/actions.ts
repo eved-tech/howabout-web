@@ -90,6 +90,33 @@ export async function checkSimilarIdea(brandSlug: string, text: string) {
   return findSimilarIdea(brand.id, text);
 }
 
+// Used by the home page's idea feed, where "Cheer on" toggles a vote on and
+// off (unlike the brand page's one-way upvote above).
+export async function toggleCheer(ideaId: string) {
+  const idea = await prisma.idea.findUnique({
+    where: { id: ideaId },
+    select: { brand: { select: { approved: true } } },
+  });
+  if (!idea || !idea.brand.approved) return;
+
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect(`/auth/sign-in?redirectTo=${encodeURIComponent("/")}`);
+  }
+
+  const existing = await prisma.vote.findUnique({
+    where: { ideaId_userId: { ideaId, userId: user.id } },
+  });
+
+  if (existing) {
+    await prisma.vote.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.vote.create({ data: { ideaId, userId: user.id } });
+  }
+
+  revalidatePath("/");
+}
+
 export async function voteIdea(ideaId: string, brandSlug: string) {
   const brand = await prisma.brand.findUnique({ where: { slug: brandSlug } });
   if (!brand || !brand.approved) return;
