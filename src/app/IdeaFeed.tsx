@@ -3,7 +3,7 @@
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { toggleCheer, reportIdea } from "./actions";
-import { colorFor, initialFor } from "@/lib/palette";
+import { AVATAR_GREY, initialFor } from "@/lib/palette";
 
 export type IdeaVM = {
   id: string;
@@ -160,7 +160,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
       </div>
 
       <div style={{ display: "flex", flexDirection: "column" }}>
-        {visible.map((idea, i) => (
+        {visible.map((idea) => (
           <article className="hb-row" key={idea.id}>
             <div className="hb-row-vote" role="group" aria-label="Add your cheer to this idea">
               <div className="hb-countbox">
@@ -170,7 +170,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
               <div className="hb-btns">
                 <button
                   type="button"
-                  className={`hb-upbtn ${i < 3 ? "hb-up-dark" : ""}`}
+                  className="hb-upbtn"
                   aria-pressed={idea.voted}
                   onClick={() => cheer(idea.id)}
                 >
@@ -181,7 +181,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
                       <path d="M10 16V4M4.5 9.5 10 4l5.5 5.5" />
                     </svg>
                   )}
-                  {idea.voted ? "Cheered" : "Add your cheer"}
+                  {idea.voted ? "Cheered" : "add your cheer"}
                 </button>
               </div>
             </div>
@@ -189,7 +189,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
             <div style={{ display: "flex", flexDirection: "column", gap: 12, flexGrow: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px 14px" }}>
                 <Link href={`/brands/${idea.brandSlug}`} className="hb-chip hb-chip-ph" style={{ textDecoration: "none" }}>
-                  <span className="hb-initial" style={{ background: colorFor(idea.brandName) }} aria-hidden="true">
+                  <span className="hb-initial" style={{ background: AVATAR_GREY }} aria-hidden="true">
                     {initialFor(idea.brandName)}
                   </span>
                   <span style={{ fontWeight: 800, fontSize: 16 }}>{idea.brandName}</span>
@@ -223,7 +223,7 @@ export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders:
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                   <span
                     className="hb-initial"
-                    style={{ background: colorFor(idea.authorName), width: 32, height: 32 }}
+                    style={{ background: AVATAR_GREY, width: 32, height: 32 }}
                     aria-hidden="true"
                   >
                     {initialFor(idea.authorName)}

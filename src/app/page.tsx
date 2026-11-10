@@ -8,6 +8,23 @@ import { RotatingBrandLogo } from "./RotatingBrandLogo";
 
 export const dynamic = "force-dynamic";
 
+// Real logo files we have on hand, keyed by lowercase brand name — used to
+// upgrade the "Brands South Africans are talking to" tiles from a flat
+// placeholder swatch to the real mark once we have one.
+const KNOWN_BRAND_LOGOS: Record<string, string> = {
+  woolworths: "/brand-logos/woolworths.png",
+  takealot: "/brand-logos/takealot.png",
+  gautrain: "/brand-logos/gautrain.png",
+};
+
+// Recognisable brands to show alongside real registered ones, even before
+// they have an idea or a Brand record of their own — placeholder "trust"
+// logos until the real brand-seeding pipeline lands (see feature wish-list doc).
+const GUEST_BRAND_LOGOS = [
+  { name: "Takealot", logo: KNOWN_BRAND_LOGOS.takealot },
+  { name: "Gautrain", logo: KNOWN_BRAND_LOGOS.gautrain },
+];
+
 // Hard-coded, not pulled from real submissions — just a lively sample of the
 // kind of thing people post, for the hero's scrolling ticker.
 const HERO_TICKER_IDEAS = [
@@ -171,7 +188,7 @@ export default async function HomePage() {
         </nav>
       </header>
 
-      <section id="top" style={{ position: "relative", overflow: "hidden", padding: "104px 24px 128px", textAlign: "center" }}>
+      <section id="top" style={{ position: "relative", overflow: "hidden", padding: "104px 24px 72px", textAlign: "center" }}>
         <div className="hb-deco" aria-hidden="true" style={{ position: "absolute", left: -70, top: 60, transform: "rotate(-12deg)" }}>
           <svg width="200" height="200" viewBox="0 0 200 200">
             <polygon
@@ -217,7 +234,7 @@ export default async function HomePage() {
             {newIdeasCount} ideas submitted today
           </p>
           <div style={{ marginTop: 40, display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
-            <Link className="hb-btn hb-btn-o" href="/submit">Share <em>your</em> idea</Link>
+            <Link className="hb-btn hb-btn-o" href="/submit">Share <em style={{ marginInline: "0.18em" }}>your</em> idea</Link>
           </div>
           <div className="hb-ticker" style={{ marginTop: 48 }}>
             <div className="hb-ticker-track">
@@ -232,11 +249,11 @@ export default async function HomePage() {
       </section>
 
       <section id="ideas" style={{ background: "var(--hb-page)" }}>
-        <div className="hb-ideas-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "48px 24px 96px" }}>
+        <div className="hb-ideas-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px 96px" }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ maxWidth: 720 }}>
               <h2 className="hb-heading" style={{ margin: 0, fontWeight: 600, fontSize: "clamp(32px, 5.4vw, 60px)", lineHeight: 1.08, letterSpacing: "-0.01em" }}>
-                Ideas hatched by South Africans
+                We’ve got some ideas…
               </h2>
             </div>
 
@@ -320,11 +337,28 @@ export default async function HomePage() {
             Brands South Africans are talking to
           </h2>
           <div className="hb-logos">
-            {brands.map((brand) => (
-              <Link key={brand.slug} href={`/brands/${brand.slug}`} className="hb-logo-tile" style={{ textDecoration: "none", color: "inherit" }}>
-                <span className="hb-logo-mark" style={{ background: colorFor(brand.name) }} aria-hidden="true"></span>
-                <span>{brand.name}</span>
-              </Link>
+            {brands.map((brand) => {
+              const logo = KNOWN_BRAND_LOGOS[brand.name.toLowerCase()];
+              return (
+                <Link key={brand.slug} href={`/brands/${brand.slug}`} className="hb-logo-tile" style={{ textDecoration: "none", color: "inherit" }}>
+                  {logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logo} alt="" style={{ maxWidth: 36, maxHeight: 28, objectFit: "contain" }} />
+                  ) : (
+                    <span className="hb-logo-mark" style={{ background: colorFor(brand.name) }} aria-hidden="true"></span>
+                  )}
+                  <span>{brand.name}</span>
+                </Link>
+              );
+            })}
+            {GUEST_BRAND_LOGOS.filter(
+              (guest) => !brands.some((brand) => brand.name.toLowerCase() === guest.name.toLowerCase())
+            ).map((guest) => (
+              <div key={guest.name} className="hb-logo-tile">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={guest.logo} alt="" style={{ maxWidth: 36, maxHeight: 28, objectFit: "contain" }} />
+                <span>{guest.name}</span>
+              </div>
             ))}
           </div>
         </section>

@@ -3,6 +3,9 @@
 // person always gets the same colour.
 const PALETTE = ["#A9CCFF", "#FFD36B", "#A8DDA2", "#D4C2F7", "#FFB8CC", "#FFC49A"];
 
+// Neutral fill for the brand/author avatar circles in the idea feed.
+export const AVATAR_GREY = "#D8D2C7";
+
 export function colorFor(seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {

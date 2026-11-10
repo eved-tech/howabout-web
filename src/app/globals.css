@@ -6,7 +6,6 @@
 
   /* "How about" brand palette */
   --hb-orange: #ff751f;
-  --hb-burnt: #c2410c;
   --hb-ink: #1f1a17;
   --hb-page: #fffffb;
   --hb-divider: #e4d5bd;
@@ -21,7 +20,6 @@
   --font-heading: var(--font-fredoka);
   --font-body: var(--font-nunito);
   --color-hb-orange: var(--hb-orange);
-  --color-hb-burnt: var(--hb-burnt);
   --color-hb-ink: var(--hb-ink);
   --color-hb-page: var(--hb-page);
   --color-hb-divider: var(--hb-divider);
@@ -241,13 +239,6 @@ body {
 }
 .hb-upbtn:hover {
   background: #ff8a47;
-}
-.hb-upbtn.hb-up-dark {
-  background: var(--hb-burnt);
-  color: #ffffff;
-}
-.hb-upbtn.hb-up-dark:not([aria-pressed="true"]):hover {
-  background: #a8370a;
 }
 .hb-upbtn[aria-pressed="true"] {
   background: var(--hb-ink);
