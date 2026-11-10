@@ -12,6 +12,8 @@ export type IdeaVM = {
   category: string | null;
   brandName: string;
   brandSlug: string;
+  brandClaimed: boolean;
+  responded: boolean;
   authorName: string;
   votes: number;
   voted: boolean;
@@ -25,6 +27,7 @@ export type IdeaOrders = {
   popular: string[];
   comments: string[];
   growing: string[];
+  cheering: string[];
 };
 
 const TABS: { key: keyof IdeaOrders; label: string }[] = [
@@ -32,6 +35,7 @@ const TABS: { key: keyof IdeaOrders; label: string }[] = [
   { key: "popular", label: "Most popular" },
   { key: "comments", label: "Most comments" },
   { key: "growing", label: "Growing" },
+  { key: "cheering", label: "Ideas you are cheering" },
 ];
 
 const PAGE_SIZE = 6;
@@ -40,10 +44,11 @@ function formatVotes(n: number) {
   return n.toLocaleString("en-US").replace(/,/g, " ");
 }
 
-export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrders }) {
+export function IdeaFeed({ ideas, orders, signedIn }: { ideas: IdeaVM[]; orders: IdeaOrders; signedIn: boolean }) {
   const [tab, setTab] = useState<keyof IdeaOrders>("popular");
   const [query, setQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const [optimisticIdeas, cheerOptimistically] = useOptimistic(
     ideas,
@@ -84,6 +89,23 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
     startTransition(async () => {
       await reportIdea(ideaId);
     });
+  }
+
+  // Ideas don't have their own page yet, so the closest shareable link is
+  // the brand page — see the "Up next" item in the feature wish-list doc.
+  async function share(idea: IdeaVM) {
+    const url = `${window.location.origin}/brands/${idea.brandSlug}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: idea.headline, url });
+        return;
+      } catch {
+        // user cancelled the share sheet — fall through to clipboard copy
+      }
+    }
+    await navigator.clipboard.writeText(url);
+    setCopiedId(idea.id);
+    setTimeout(() => setCopiedId((id) => (id === idea.id ? null : id)), 2000);
   }
 
   return (
@@ -152,9 +174,13 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
                   aria-pressed={idea.voted}
                   onClick={() => cheer(idea.id)}
                 >
-                  <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M10 16V4M4.5 9.5 10 4l5.5 5.5" />
-                  </svg>
+                  {idea.voted ? (
+                    <span aria-hidden="true">🙌</span>
+                  ) : (
+                    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M10 16V4M4.5 9.5 10 4l5.5 5.5" />
+                    </svg>
+                  )}
                   {idea.voted ? "Cheered" : "Cheer on"}
                 </button>
               </div>
@@ -167,7 +193,24 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
                     {initialFor(idea.brandName)}
                   </span>
                   <span style={{ fontWeight: 800, fontSize: 16 }}>{idea.brandName}</span>
+                  {idea.brandClaimed && (
+                    <span title="Claimed by this brand" aria-label="Claimed by this brand">
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="#2563eb" aria-hidden="true">
+                        <circle cx="10" cy="10" r="10" />
+                        <path d="M6 10.2l2.4 2.4L14 7" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  )}
                 </Link>
+                <span
+                  title={idea.responded ? `${idea.brandName} has responded` : "No response yet"}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: idea.responded ? "#166534" : "#9a9086" }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2v-6z" />
+                  </svg>
+                  {idea.responded ? "Responded" : "No response yet"}
+                </span>
               </div>
               <h3
                 className="hb-heading"
@@ -191,6 +234,14 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
                 </span>
                 <span aria-hidden="true">•</span>
                 <span>Comments: {idea.commentsCount}</span>
+                <span aria-hidden="true">•</span>
+                <button
+                  type="button"
+                  onClick={() => share(idea)}
+                  style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "inherit", textDecoration: "underline", cursor: "pointer" }}
+                >
+                  {copiedId === idea.id ? "Link copied!" : "Share"}
+                </button>
                 {idea.reportable && (
                   <>
                     <span aria-hidden="true">•</span>
@@ -213,10 +264,18 @@ export function IdeaFeed({ ideas, orders }: { ideas: IdeaVM[]; orders: IdeaOrder
         ))}
       </div>
 
-      {filtered.length === 0 && (
+      {tab === "cheering" && !signedIn ? (
         <p style={{ margin: 0, padding: "48px 0", fontSize: 20, fontWeight: 700, textAlign: "center" }}>
-          No ideas match that search yet. How about submitting one?
+          <Link href="/auth/sign-in" style={{ textDecoration: "underline" }}>Sign in</Link> to see the ideas you&apos;re cheering.
         </p>
+      ) : (
+        filtered.length === 0 && (
+          <p style={{ margin: 0, padding: "48px 0", fontSize: 20, fontWeight: 700, textAlign: "center" }}>
+            {tab === "cheering"
+              ? "You haven't cheered any ideas yet."
+              : "No ideas match that search yet. How about submitting one?"}
+          </p>
+        )
       )}
 
       {visibleCount < filtered.length && (

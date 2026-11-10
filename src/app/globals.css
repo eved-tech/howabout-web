@@ -8,7 +8,7 @@
   --hb-orange: #ff751f;
   --hb-burnt: #c2410c;
   --hb-ink: #1f1a17;
-  --hb-page: #fffaf1;
+  --hb-page: #fffdf8;
   --hb-divider: #e4d5bd;
   --hb-chip-border: #d9c7a8;
 }
@@ -415,6 +415,17 @@ body {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+.hb-ideas-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .hb-ideas-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .hb-logos {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
@@ -440,6 +451,34 @@ body {
   height: 28px;
   border-radius: 8px;
   background: #e9dfcb;
+}
+
+.hb-ticker {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.hb-ticker-track {
+  display: inline-flex;
+  width: max-content;
+  gap: 16px;
+  animation: hb-ticker-scroll 32s linear infinite;
+}
+.hb-ticker:hover .hb-ticker-track {
+  animation-play-state: paused;
+}
+@keyframes hb-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hb-ticker-track {
+    animation: none;
+  }
 }
 @media (max-width: 1000px) {
   .hb-logos {

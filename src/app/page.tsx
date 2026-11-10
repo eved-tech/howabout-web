@@ -4,8 +4,20 @@ import { signOut } from "@/app/auth/actions";
 import { auth } from "@/lib/auth/server";
 import { colorFor } from "@/lib/palette";
 import { IdeaFeed, type IdeaOrders, type IdeaVM } from "./IdeaFeed";
+import { RotatingBrandLogo } from "./RotatingBrandLogo";
 
 export const dynamic = "force-dynamic";
+
+// Hard-coded, not pulled from real submissions — just a lively sample of the
+// kind of thing people post, for the hero's scrolling ticker.
+const HERO_TICKER_IDEAS = [
+  "Woolworths: bring back the loyalty stamp card",
+  "Takealot: let me schedule delivery for after 6pm",
+  "Gautrain: Wi-Fi that actually works",
+  "Capitec: branches open on a Saturday",
+  "Mr Price: size guides that make sense",
+  "Checkers: a trolley that doesn't pull left",
+];
 
 async function loadIdeas(currentUserId: string | null) {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -21,7 +33,7 @@ async function loadIdeas(currentUserId: string | null) {
       orderBy: { createdAt: "desc" },
       take: 40,
       include: {
-        brand: { select: { name: true, slug: true } },
+        brand: { select: { name: true, slug: true, claimed: true } },
         author: { select: { name: true, email: true } },
         _count: { select: { votes: true } },
       },
@@ -54,6 +66,8 @@ async function loadIdeas(currentUserId: string | null) {
     category: idea.category,
     brandName: idea.brand.name,
     brandSlug: idea.brand.slug,
+    brandClaimed: idea.brand.claimed,
+    responded: idea.response !== null,
     authorName: idea.author?.name?.trim() || idea.author?.email?.split("@")[0] || "Someone",
     votes: idea._count.votes,
     voted: myVotedIds.has(idea.id),
@@ -69,12 +83,14 @@ async function loadIdeas(currentUserId: string | null) {
     return diff !== 0 ? diff : b.votes - a.votes;
   });
   const comments = popular; // no comments feature yet — tie-break on votes
+  const cheering = popular.filter((i) => i.voted);
 
   const orders: IdeaOrders = {
     latest: latest.map((i) => i.id),
     popular: popular.map((i) => i.id),
     growing: growing.map((i) => i.id),
     comments: comments.map((i) => i.id),
+    cheering: cheering.map((i) => i.id),
   };
 
   return { newIdeasCount, ideas, orders };
@@ -114,14 +130,13 @@ export default async function HomePage() {
             gap: 24,
           }}
         >
-          <a href="#top" aria-label="How About, home" className="hb-heading" style={{ fontWeight: 700, fontSize: 26, textDecoration: "none" }}>
-            how about<span style={{ color: "var(--hb-orange)" }}>…</span>
+          <a href="#top" aria-label="How About, home" style={{ display: "inline-flex", textDecoration: "none" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="how about…?" style={{ height: 32, width: "auto" }} />
           </a>
           <div className="hb-navlinks">
             <a className="hb-navlink" href="#ideas">Ideas</a>
-            <a className="hb-navlink" href="#brands">For brands</a>
             <a className="hb-navlink" href="#prizes">Prizes</a>
-            <a className="hb-navlink" href="#how">How it works</a>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             {session?.user ? (
@@ -188,48 +203,62 @@ export default async function HomePage() {
             className="hb-heading"
             style={{ margin: 0, fontWeight: 600, fontSize: "clamp(40px, 7.4vw, 96px)", lineHeight: 1.04, letterSpacing: "-0.01em" }}
           >
-            <span
-              style={{
-                display: "inline-block",
-                background: "var(--hb-orange)",
-                border: "3px solid var(--hb-ink)",
-                borderRadius: "0.14em",
-                padding: "0 0.14em 0.03em",
-                transform: "rotate(-3deg)",
-                boxShadow: "6px 6px 0 var(--hb-ink)",
-                marginRight: "0.08em",
-              }}
-            >
-              {newIdeasCount}
-            </span>
-            ideas submitted in the{" "}
-            <span style={{ position: "relative", display: "inline-block" }}>
-              last day
-              <svg aria-hidden="true" viewBox="0 0 200 20" preserveAspectRatio="none" style={{ position: "absolute", left: 0, bottom: "-0.1em", width: "100%", height: "0.2em" }}>
-                <path d="M3 12Q28 0 52 11T101 11 150 11 197 11" fill="none" stroke="var(--hb-orange)" strokeWidth="6" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-              </svg>
-            </span>
+            What can <RotatingBrandLogo />
+            <span className="hb-sr">brands</span> do better?
           </h1>
           <p style={{ margin: "32px auto 0", maxWidth: 620, fontSize: 21, lineHeight: 1.5, color: "#3A322C" }}>
             South Africans tell brands how to do better. Everyone votes. The best ideas rise, get noticed, and win prizes.
           </p>
+          <p style={{ margin: "14px auto 0", maxWidth: 620, fontSize: 21, lineHeight: 1.5, color: "#3A322C", display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}>
+            <span aria-hidden="true">🇿🇦</span>
+            {newIdeasCount} ideas submitted today
+          </p>
           <div style={{ marginTop: 40, display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
-            <a className="hb-btn hb-btn-o" href="#ideas">Find your favourite</a>
-            <Link className="hb-btn hb-btn-c" href="/auth/sign-up">Sign up</Link>
+            <Link className="hb-btn hb-btn-o" href="/submit">Share your idea</Link>
+          </div>
+          <div className="hb-ticker" style={{ marginTop: 48 }}>
+            <div className="hb-ticker-track">
+              {[...HERO_TICKER_IDEAS, ...HERO_TICKER_IDEAS].map((text, i) => (
+                <span key={i} className="hb-chip" style={{ fontSize: 15, fontWeight: 600 }}>
+                  {text}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       <section id="ideas" style={{ borderTop: "2.5px solid var(--hb-ink)", background: "var(--hb-page)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "96px 24px 96px" }}>
-          <div style={{ maxWidth: 720 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Fresh from the last day</div>
-            <h2 className="hb-heading" style={{ margin: "12px 0 0", fontWeight: 600, fontSize: "clamp(32px, 5.4vw, 60px)", lineHeight: 1.08, letterSpacing: "-0.01em" }}>
-              Ideas South Africa wants brands to hear
-            </h2>
+        <div className="hb-ideas-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "96px 24px 96px" }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ maxWidth: 720 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Fresh from the last day</div>
+              <h2 className="hb-heading" style={{ margin: "12px 0 0", fontWeight: 600, fontSize: "clamp(32px, 5.4vw, 60px)", lineHeight: 1.08, letterSpacing: "-0.01em" }}>
+                Ideas hatched by South Africans
+              </h2>
+            </div>
+
+            <IdeaFeed ideas={ideas} orders={orders} signedIn={currentUserId !== null} />
           </div>
 
-          <IdeaFeed ideas={ideas} orders={orders} />
+          <aside
+            style={{
+              border: "2px dashed var(--hb-chip-border)",
+              borderRadius: 24,
+              padding: 28,
+              minHeight: 240,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: 8,
+              color: "#6b5f55",
+            }}
+          >
+            <span style={{ fontSize: 15, fontWeight: 700 }}>Competitions &amp; promos</span>
+            <span style={{ fontSize: 14 }}>Coming soon</span>
+          </aside>
         </div>
       </section>
 
@@ -279,60 +308,6 @@ export default async function HomePage() {
             <Link className="hb-btn hb-btn-k hb-btn-l" href="/submit">
               Submit your idea
             </Link>
-          </div>
-        </div>
-      </section>
-
-      <section id="brands" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 104px" }}>
-        <div id="how" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))", gap: 28 }}>
-          <div className="hb-block" style={{ background: "#A9CCFF" }}>
-            <svg aria-hidden="true" width="180" height="120" viewBox="0 0 220 150" style={{ alignSelf: "flex-start" }}>
-              <ellipse cx="110" cy="132" rx="92" ry="16" fill="#FFFFFF" stroke="#1F1A17" strokeWidth="3" />
-              <path d="M110 18V130" stroke="#1F1A17" strokeWidth="5" strokeLinecap="round" />
-              <path d="M114 24L184 42L114 66Z" fill="#FF751F" stroke="#1F1A17" strokeWidth="3.5" strokeLinejoin="round" />
-              <circle cx="110" cy="16" r="6" fill="#1F1A17" />
-            </svg>
-            <h3 className="hb-heading" style={{ margin: 0, fontWeight: 600, fontSize: 34, lineHeight: 1.1, letterSpacing: "-0.01em" }}>Claim your brand</h3>
-            <p style={{ margin: 0, fontSize: 18, lineHeight: 1.5, color: "#2B2420", flexGrow: 1 }}>
-              Own your page. See what South Africans are asking you for, reply to the ideas, and show people what you did about them.
-            </p>
-            <a className="hb-btn hb-btn-c" href="#claim" style={{ alignSelf: "flex-start" }}>Claim your brand</a>
-          </div>
-
-          <div id="join" className="hb-block" style={{ background: "#FFB8CC" }}>
-            <svg aria-hidden="true" width="180" height="120" viewBox="0 0 220 150" style={{ alignSelf: "flex-start" }}>
-              <circle cx="80" cy="72" r="56" fill="#FFFFFF" stroke="#1F1A17" strokeWidth="3.5" />
-              <path d="M80 104V44M56 66l24-24 24 24" fill="none" stroke="#1F1A17" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="168" cy="104" r="32" fill="#FFD36B" stroke="#1F1A17" strokeWidth="3.5" />
-              <path d="M168 92v24M157 106l11 11 11-11" fill="none" stroke="#1F1A17" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <h3 className="hb-heading" style={{ margin: 0, fontWeight: 600, fontSize: 34, lineHeight: 1.1, letterSpacing: "-0.01em" }}>Join us to vote</h3>
-            <p style={{ margin: 0, fontSize: 18, lineHeight: 1.5, color: "#2B2420", flexGrow: 1 }}>
-              Sign up, then upvote the ideas you would love and downvote the ones you would not. Votes are how brands know what matters.
-            </p>
-            <Link className="hb-btn hb-btn-c" href="/auth/sign-up" style={{ alignSelf: "flex-start" }}>Sign up and vote</Link>
-          </div>
-
-          <div className="hb-block" style={{ background: "#A8DDA2" }}>
-            <svg aria-hidden="true" width="180" height="120" viewBox="0 0 220 150" style={{ alignSelf: "flex-start" }}>
-              <path
-                d="M30 14h110a18 18 0 0 1 18 18v52a18 18 0 0 1-18 18H82l-28 26v-26H30A18 18 0 0 1 12 84V32A18 18 0 0 1 30 14z"
-                fill="#FFFFFF"
-                stroke="#1F1A17"
-                strokeWidth="3.5"
-                strokeLinejoin="round"
-              />
-              <path d="M50 58l20 20 40-40" fill="none" stroke="#1F1A17" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <h3 className="hb-heading" style={{ margin: 0, fontWeight: 600, fontSize: 34, lineHeight: 1.1, letterSpacing: "-0.01em" }}>When brands listened</h3>
-            <p style={{ margin: 0, fontSize: 18, lineHeight: 1.5, color: "#2B2420" }}>
-              Ideas that made it off the page and into real life. Proof that a good idea, voted up, gets noticed.
-            </p>
-            <div style={{ border: "2px dashed #1F1A17", borderRadius: 16, padding: "12px 16px", fontSize: 15, fontWeight: 700, alignSelf: "flex-start" }}>
-              [BRAND] changed [THING] after [N] votes
-            </div>
-            <div style={{ flexGrow: 1 }} />
-            <a className="hb-btn hb-btn-c" href="#wins" style={{ alignSelf: "flex-start" }}>See what changed</a>
           </div>
         </div>
       </section>
@@ -431,18 +406,15 @@ export default async function HomePage() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "72px 24px 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 40, flexWrap: "wrap" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 320 }}>
-              <span className="hb-heading" style={{ fontWeight: 700, fontSize: 28 }}>
-                how about<span style={{ color: "var(--hb-orange)" }}>…</span>
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="how about…?" style={{ height: 30, width: "auto" }} />
               <p style={{ margin: 0, fontSize: 16, lineHeight: 1.5, color: "#E9DFCB" }}>
                 Ideas from South Africans, for the brands we deal with every day.
               </p>
             </div>
             <div style={{ display: "flex", gap: 32, flexWrap: "wrap", fontSize: 17 }}>
               <a href="#ideas" style={{ textDecoration: "none", padding: "8px 0" }}>Ideas</a>
-              <a href="#brands" style={{ textDecoration: "none", padding: "8px 0" }}>For brands</a>
               <a href="#prizes" style={{ textDecoration: "none", padding: "8px 0" }}>Prizes</a>
-              <a href="#how" style={{ textDecoration: "none", padding: "8px 0" }}>How it works</a>
               <a href="#terms" style={{ textDecoration: "none", padding: "8px 0" }}>Terms</a>
               <a href="#privacy" style={{ textDecoration: "none", padding: "8px 0" }}>Privacy</a>
             </div>
