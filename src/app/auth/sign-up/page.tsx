@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signUpWithEmail } from "./actions";
 import { VerifyCodeForm } from "../VerifyCodeForm";
+import { AuthShell } from "../AuthShell";
 
 export default function SignUpPage() {
   return (
@@ -20,70 +21,50 @@ function SignUpForm() {
 
   if (state && "status" in state && state.status === "verify") {
     return (
-      <main className="mx-auto max-w-sm w-full px-4 py-16">
-        <h1 className="font-medium text-lg mb-6">Verify your email</h1>
+      <AuthShell title="Verify your email">
         <VerifyCodeForm email={state.email} redirectTo={state.redirectTo} />
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main className="mx-auto max-w-sm w-full px-4 py-16">
-      <h1 className="font-medium text-lg mb-6">Create your account</h1>
-      <form action={formAction} className="flex flex-col gap-3">
+    <AuthShell title="Join How about">
+      <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <input type="hidden" name="redirectTo" value={redirectTo} />
         <div>
-          <label htmlFor="name" className="block text-xs text-neutral-500 mb-1">
+          <label htmlFor="name" className="hb-field-label">
             Name
           </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
-          />
+          <input id="name" name="name" type="text" required className="hb-field-input" />
         </div>
         <div>
-          <label htmlFor="email" className="block text-xs text-neutral-500 mb-1">
+          <label htmlFor="email" className="hb-field-label">
             Email
           </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
-          />
+          <input id="email" name="email" type="email" required className="hb-field-input" />
         </div>
         <div>
-          <label htmlFor="password" className="block text-xs text-neutral-500 mb-1">
+          <label htmlFor="password" className="hb-field-label">
             Password
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            minLength={8}
-            className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm"
-          />
+          <input id="password" name="password" type="password" required minLength={8} className="hb-field-input" />
         </div>
-        {state && "error" in state && <p className="text-sm text-red-600">{state.error}</p>}
+        {state && "error" in state && <p className="hb-field-error">{state.error}</p>}
         <button
           type="submit"
           disabled={isPending}
-          className="bg-neutral-900 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50 mt-2"
+          className="hb-btn hb-btn-o hb-btn-l"
+          style={{ opacity: isPending ? 0.6 : 1, marginTop: 4 }}
         >
           {isPending ? "Creating account…" : "Create account"}
         </button>
       </form>
-      <p className="text-sm text-neutral-500 mt-4">
+      <p style={{ marginTop: 24, fontSize: 15 }}>
         Already have an account?{" "}
-        <Link href={`/auth/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`} className="underline">
+        <Link className="hb-auth-link" href={`/auth/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`}>
           Sign in
         </Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }

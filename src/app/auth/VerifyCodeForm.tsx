@@ -17,16 +17,14 @@ export function VerifyCodeForm({ email, redirectTo }: { email: string; redirectT
 
   return (
     <div>
-      <p className="text-sm text-neutral-500 mb-4">
-        We&apos;ve sent a 6-digit code to{" "}
-        <span className="font-medium text-neutral-900">{email}</span>. Enter it
-        below to verify your email.
+      <p style={{ margin: "0 0 20px", fontSize: 15, lineHeight: 1.5 }}>
+        We&apos;ve sent a 6-digit code to <strong>{email}</strong>. Enter it below to verify your email.
       </p>
-      <form action={formAction} className="flex flex-col gap-3">
+      <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="redirectTo" value={redirectTo} />
         <div>
-          <label htmlFor="otp" className="block text-xs text-neutral-500 mb-1">
+          <label htmlFor="otp" className="hb-field-label">
             Verification code
           </label>
           <input
@@ -37,22 +35,26 @@ export function VerifyCodeForm({ email, redirectTo }: { email: string; redirectT
             autoComplete="one-time-code"
             maxLength={6}
             required
-            className="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm tracking-widest"
+            className="hb-field-input"
+            style={{ letterSpacing: "0.3em", fontSize: 20, textAlign: "center" }}
           />
         </div>
-        {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+        {state?.error && <p className="hb-field-error">{state.error}</p>}
         <button
           type="submit"
           disabled={isPending}
-          className="bg-neutral-900 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50 mt-2"
+          className="hb-btn hb-btn-o hb-btn-l"
+          style={{ opacity: isPending ? 0.6 : 1, marginTop: 4 }}
         >
           {isPending ? "Verifying…" : "Verify email"}
         </button>
       </form>
       <button
+        type="button"
         onClick={resend}
         disabled={resending}
-        className="text-sm underline mt-3 disabled:opacity-50"
+        className="hb-auth-link"
+        style={{ background: "none", border: "none", padding: 0, marginTop: 16, font: "inherit", cursor: "pointer", opacity: resending ? 0.6 : 1 }}
       >
         {resending ? "Sending…" : resent ? "Code resent — check your email" : "Resend code"}
       </button>
